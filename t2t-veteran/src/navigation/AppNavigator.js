@@ -2,10 +2,12 @@ import React, { useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
- import LoginScreen from '../screens/LoginScreen';
- import RegisterScreen from '../screens/RegisterScreen';
+import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
 import CalendarScreen from '../screens/CalendarScreen';
+import CameraScreen from '../screens/CameraScreen';
+import MirrorConnectionScreen from '../../../t2t-veteran/src/screens/MirrorConnectionScreen';
 import { AuthContext } from '../context/AuthContext';
 
 const Stack = createStackNavigator();
@@ -24,14 +26,14 @@ const AppNavigator = () => {
     return (
         <NavigationContainer>
             <Stack.Navigator>
-                 {isAuthenticated ? ( 
+                {isAuthenticated ? (
                     <Stack.Screen name="Home" component={TabNavigator} />
-                 ) : ( 
-                     <> 
-                        { <Stack.Screen name="Login" component={LoginScreen} /> }
-                        { <Stack.Screen name="Register" component={RegisterScreen} /> }
-                     </> 
-                 )} 
+                ) : (
+                    <>
+                        {<Stack.Screen name="Login" component={LoginScreen} />}
+                        {<Stack.Screen name="Register" component={RegisterScreen} />}
+                    </>
+                )}
             </Stack.Navigator>
         </NavigationContainer>
     );
