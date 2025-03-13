@@ -38,8 +38,8 @@ class BLEManager {
                     return;
                 }
 
-                if (device && device.id.toLowerCase() === deviceId.toLowerCase()) {
-                    console.log('✅ Device found:', device.id);
+                if (device && device.serviceUUIDs.some((uuid) => uuid.replace(/-/g, '').toLowerCase() == deviceId.toLowerCase())) {
+                    console.log('✅ Device found:', device);
                     this.manager.stopDeviceScan();
                     resolve(device);
                 }
