@@ -2,71 +2,8 @@ import { Platform } from 'react-native';
 import { API_BASE_URL, ANDROID_API_BASE_URL, IOS_API_BASE_URL, PHYSICAL_DEVICE_URL } from '@env';
 import Constants from 'expo-constants';
 
-// const getBaseUrl = () => {
-//     const platform = Platform.OS;
-//     const isDevice = Constants.isDevice;
-
-//     console.log('Device info:', {
-//         platform,
-//         isDevice,
-//         deviceName: Constants.deviceName,
-//     });
-
-//     // Handle physical devices
-//     if (isDevice) {
-//         console.log('Physical device detected, using:', PHYSICAL_DEVICE_URL);
-//         return PHYSICAL_DEVICE_URL;
-//     }
-
-//     // Handle simulators/emulators
-//     if (platform === 'ios') {
-//         console.log('iOS simulator detected, using:', IOS_API_BASE_URL);
-//         return IOS_API_BASE_URL;
-//     }
-
-//     if (platform === 'android') {
-//         console.log('Android emulator detected, using:', ANDROID_API_BASE_URL);
-//         return ANDROID_API_BASE_URL;
-//     }
-
-//     return API_BASE_URL;
-// };
 
 const getBaseUrl = () => {
-    const platform = Platform.OS;
-    const deviceName = Constants.deviceName || '';
-    const modelName = Constants.platform?.ios?.model;
-
-    // More accurate simulator detection for iOS and Android
-    const isSimulator = platform === 'ios'
-        ? (deviceName === 'iPhone Simulator' || !modelName)
-        : deviceName.toLowerCase().includes('sdk_gphone');
-
-    console.log('Device info:', {
-        platform,
-        deviceName,
-        modelName,
-        isSimulator
-    });
-
-    // Handle different environments
-    if (platform === 'ios') {
-        if (isSimulator) {
-            console.log('iOS simulator detected, using:', IOS_API_BASE_URL);
-            return IOS_API_BASE_URL;
-        }
-        console.log('iOS physical device detected, using:', PHYSICAL_DEVICE_URL);
-        return PHYSICAL_DEVICE_URL;
-    }
-
-    if (platform === 'android') {
-        if (isSimulator) {
-            console.log('Android emulator detected, using:', ANDROID_API_BASE_URL);
-            return ANDROID_API_BASE_URL;
-        }
-        console.log('Android physical device detected, using:', PHYSICAL_DEVICE_URL);
-        return PHYSICAL_DEVICE_URL;
-    }
 
     return API_BASE_URL;
 };
