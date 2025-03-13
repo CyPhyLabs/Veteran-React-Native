@@ -8,6 +8,8 @@ const getBaseUrl = () => {
     return API_BASE_URL;
 };
 
+export const BASE_URL = getBaseUrl();
+
 export const apiCall = async (endpoint, method = 'GET', body = null) => {
     const url = `${BASE_URL}${endpoint}`;
     const options = {
@@ -58,7 +60,7 @@ export const apiCall = async (endpoint, method = 'GET', body = null) => {
     }
 };
 
-export const BASE_URL = getBaseUrl();
+
 
 export const ENDPOINTS = {
     LOGIN: '/login/',
