@@ -44,7 +44,17 @@ const AppNavigator = () => {
         <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
                 {isAuthenticated ? (
-                    <Stack.Screen name="MainApp" component={TabNavigator} />
+                    <>
+                        <Stack.Screen name="MainApp" component={TabNavigator} />
+                        <Stack.Screen
+                            name="MirrorConnectionScreen"
+                            component={MirrorConnectionScreen}
+                            options={{
+                                headerShown: true,
+                                title: 'Mirror Connection'
+                            }}
+                        />
+                    </>
                 ) : (
                     <>
                         <Stack.Screen name="Login" component={LoginScreen} />

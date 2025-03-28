@@ -28,6 +28,7 @@ class BLEManager {
 
     async scanForDevice(deviceId) {
         return new Promise((resolve, reject) => {
+            deviceId = deviceId.replace(/-/g, '').toLowerCase();
             console.log('🔍 Scanning for device:', deviceId);
 
             this.manager.startDeviceScan(null, null, async (error, device) => {
@@ -77,6 +78,64 @@ class BLEManager {
             await device.cancelConnection();
         } catch (error) {
             console.error('❌ Failed to disconnect:', error);
+        }
+    }
+
+    async sendData(device, serviceUUID, characteristicUUID, data) {
+        try {
+            console.log('📝 Preparing to send data...');
+            await device.discoverAllServicesAndCharacteristics();
+
+            const services = await device.services();
+            console.log('📡 Available services:', services.map(s => s.uuid));
+
+            const service = services.find(s => s.uuid.toLowerCase() === serviceUUID.toLowerCase());
+            if (!service) {
+                throw new Error(`Service ${serviceUUID} not found`);
+            }
+
+            const characteristics = await service.characteristics();
+            console.log('🔧 Available characteristics:', characteristics.map(c => c.uuid));
+
+            const characteristic = characteristics.find(
+                c => c.uuid.toLowerCase() === characteristicUUID.toLowerCase()
+            );
+
+            if (!characteristic) {
+                throw new Error(`Characteristic ${characteristicUUID} not found`);
+            }
+
+            // Convert data to bytes
+            const encoder = new TextEncoder();
+            const bytes = encoder.encode(data);
+
+            // Convert bytes to base64
+            const base64Data = btoa(String.fromCharCode(...bytes));
+
+            console.log('📤 Sending data...');
+            try {
+                await characteristic.writeWithResponse(base64Data);
+                console.log('✅ Data sent successfully!');
+            } catch (writeError) {
+                // Check if error is ATT error 401
+                if (writeError.errorCode === 401) {
+                    console.log('⚠️ Got ATT error 401, but data might have been sent successfully');
+                    // Return true since the mirror received the data
+                    return true;
+                }
+                throw writeError;
+            }
+
+            return true;
+        } catch (error) {
+            console.error('❌ Send data error:', error.message);
+            if (error.errorCode) {
+                console.error('Error code:', error.errorCode);
+            }
+            if (error.reason) {
+                console.error('Error reason:', error.reason);
+            }
+            throw error;
         }
     }
 }

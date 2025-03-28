@@ -1,17 +1,41 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, TextInput, ActivityIndicator } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import BLEManager from '../services/BleManager';
 
-export default function MirrorConnectionScreen({ device, password, onDisconnect }) {
+export default function MirrorConnectionScreen() {
+    const navigation = useNavigation();
+    const route = useRoute();
+    const { device, password } = route.params || {};
+
     const [ssid, setSsid] = useState('');
     const [wifiPassword, setWifiPassword] = useState('');
     const [sending, setSending] = useState(false);
 
+
+    useEffect(() => {
+        if (!device) {
+            Alert.alert('Error', 'No device connected');
+            navigation.goBack();
+        }
+
+        // Cleanup on unmount
+        return () => {
+            if (device) {
+                BLEManager.disconnectFromDevice(device)
+                    .catch(error => console.error('Disconnect error:', error));
+            }
+        };
+    }, [device]);
+
     const handleDisconnect = async () => {
         try {
-            await BLEManager.disconnectFromDevice(device);
-            onDisconnect();
+            if (device) {
+                await BLEManager.disconnectFromDevice(device);
+                navigation.goBack();
+            }
         } catch (error) {
+            console.error('Disconnect error:', error);
             Alert.alert('Error', 'Failed to disconnect.');
         }
     };
@@ -35,20 +59,46 @@ export default function MirrorConnectionScreen({ device, password, onDisconnect 
                             const data = JSON.stringify({
                                 ssid,
                                 password: wifiPassword,
-                                qrcode_password: password, // This ensures the mirror authenticates the request
-                                token: "YOUR_AUTH_TOKEN_HERE", // Replace this with the actual authentication token
+                                qrcode_password: password,
+                                token: "1",
                             });
+
+                            console.log('📦 Preparing data:', { ssid, qrcode_password: password, hasPassword: !!wifiPassword });
+
+                            // Get the service UUID from device's serviceUUIDs
+                            const serviceUUID = device.serviceUUIDs?.[0];
+                            if (!serviceUUID) {
+                                throw new Error('No service UUID found');
+                            }
+
+                            // Get all services
+                            const services = await device.services();
+                            const service = services.find(s => s.uuid.toLowerCase() === serviceUUID.toLowerCase());
+                            if (!service) {
+                                throw new Error(`Service ${serviceUUID} not found`);
+                            }
+
+                            // Get all characteristics
+                            const characteristics = await service.characteristics();
+                            const characteristic = characteristics[0]; // Use the first characteristic
+                            if (!characteristic) {
+                                throw new Error('No characteristic found');
+                            }
+
+                            console.log('Service UUID:', serviceUUID);
+                            console.log('Characteristic UUID:', characteristic.uuid);
 
                             await BLEManager.sendData(
                                 device,
-                                'your-service-uuid-here', // Replace with actual service UUID
-                                'your-characteristic-uuid-here', // Replace with actual characteristic UUID
+                                serviceUUID,
+                                characteristic.uuid,
                                 data
                             );
 
                             Alert.alert('Success', 'Wi-Fi credentials sent successfully.');
                         } catch (error) {
-                            Alert.alert('Error', 'Failed to send Wi-Fi credentials.');
+                            console.error('❌ Send error:', error);
+                            Alert.alert('Error', `Failed to send Wi-Fi credentials: ${error.message}`);
                         } finally {
                             setSending(false);
                         }
@@ -57,6 +107,7 @@ export default function MirrorConnectionScreen({ device, password, onDisconnect 
             ]
         );
     };
+
 
     return (
         <View style={styles.container}>
@@ -88,6 +139,15 @@ export default function MirrorConnectionScreen({ device, password, onDisconnect 
 }
 
 const styles = StyleSheet.create({
+    subtitle: {
+        fontSize: 16,
+        color: '#FFFFFF',
+        marginBottom: 30,
+        opacity: 0.8,
+    },
+    disabledButton: {
+        opacity: 0.6,
+    },
     container: {
         flex: 1,
         justifyContent: 'center',
