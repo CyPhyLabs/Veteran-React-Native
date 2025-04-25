@@ -16,7 +16,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.smartreflect.t2tveteran",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "Allow location to access current WiFi network.",
+        "NSBluetoothAlwaysUsageDescription": "Allow Bluetooth access to connect to devices."
       }
     },
     "android": {
@@ -24,6 +26,14 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "permissions": [
+        "ACCESS_WIFI_STATE",
+        "CHANGE_WIFI_STATE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "BLUETOOTH_SCAN",
+        "BLUETOOTH_CONNECT"
+      ],
       "package": "com.smartreflect.t2tveteran"
     },
     "web": {
@@ -50,7 +60,8 @@
           "modes": ["peripheral", "central"],
           "bluetoothAlwaysPermission": "Allow $(PRODUCT_NAME) to connect to bluetooth devices"
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "owner": "smart-reflect"
   }

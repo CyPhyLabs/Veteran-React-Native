@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, TextInput, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import BLEManager from '../services/BleManager';
+import WifiManager from '../services/WifiManager';
+import { requestMirrorRefreshToken } from '../services/mirrorAuth.service';
 
 export default function MirrorConnectionScreen() {
     const navigation = useNavigation();
@@ -12,126 +14,148 @@ export default function MirrorConnectionScreen() {
     const [wifiPassword, setWifiPassword] = useState('');
     const [sending, setSending] = useState(false);
 
+    const [currentSSID, setCurrentSSID] = useState(null);
+    const [manualEntry, setManualEntry] = useState(false);
+
+
 
     useEffect(() => {
+        async function fetchWifi() {
+            const ssid = await WifiManager.getCurrentSSID();
+            setCurrentSSID(ssid);
+        }
+
+        fetchWifi();
+
         if (!device) {
             Alert.alert('Error', 'No device connected');
             navigation.goBack();
+            return;
         }
 
         // Cleanup on unmount
         return () => {
             if (device) {
+                // Wrap disconnect in try-catch to prevent unhandled rejection
                 BLEManager.disconnectFromDevice(device)
-                    .catch(error => console.error('Disconnect error:', error));
+                    .catch(error => {
+                        // Only log critical errors, ignore cancellation
+                        if (!error.message.includes('cancelled')) {
+                            console.error('Disconnect error:', error);
+                        }
+                    });
             }
         };
     }, [device]);
+
 
     const handleDisconnect = async () => {
         try {
             if (device) {
                 await BLEManager.disconnectFromDevice(device);
-                navigation.goBack();
             }
+            navigation.goBack();
         } catch (error) {
-            console.error('Disconnect error:', error);
-            Alert.alert('Error', 'Failed to disconnect.');
+            // Only show alert for critical errors
+            if (!error.message.includes('cancelled')) {
+                console.error('Disconnect error:', error);
+                Alert.alert('Error', 'Failed to disconnect properly, but proceeding to previous screen.');
+            }
+            // Navigate back anyway since we want to leave this screen
+            navigation.goBack();
         }
     };
 
-    const handleSendWifiCredentials = async () => {
+    const sendCredentials = async (wifiSSID, wifiPassword) => {
+        setSending(true);
+        try {
+            const mirrorToken = await requestMirrorRefreshToken();
+
+            const credentialsPayload = {
+                wifi_ssid: wifiSSID,
+                wifi_password: wifiPassword,
+                qrcode_password: password, // from screen param
+                mirror_refresh_token: mirrorToken,
+            };
+
+            const data = JSON.stringify(credentialsPayload);
+
+            const serviceUUID = device.serviceUUIDs?.[0];
+            const services = await device.services();
+            const service = services.find(s => s.uuid.toLowerCase() === serviceUUID.toLowerCase());
+            const characteristic = (await service.characteristics())[0];
+
+            await BLEManager.sendData(device, serviceUUID, characteristic.uuid, data);
+
+            Alert.alert('Success', 'Credentials sent successfully to the mirror.');
+        } catch (error) {
+            console.error('Failed to send credentials:', error.message);
+            Alert.alert('Error', `Failed to send credentials: ${error.message}`);
+        } finally {
+            setSending(false);
+        }
+    };
+
+    const handleShareCurrentWifi = async () => {
+        let pass = await WifiManager.getStoredPassword(currentSSID);
+        if (!pass) {
+            WifiManager.promptForPassword(currentSSID, (enteredPass) => {
+                sendCredentials(currentSSID, enteredPass);
+            });
+        } else {
+            sendCredentials(currentSSID, pass);
+        }
+    };
+
+    const handleManualSend = () => {
         if (!ssid || !wifiPassword) {
             Alert.alert('Error', 'Please enter both SSID and password.');
             return;
         }
-
-        Alert.alert(
-            'Send Wi-Fi Info',
-            'Do you want to send Wi-Fi credentials to the mirror?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Send',
-                    onPress: async () => {
-                        setSending(true);
-                        try {
-                            const data = JSON.stringify({
-                                ssid,
-                                password: wifiPassword,
-                                qrcode_password: password,
-                                token: "1",
-                            });
-
-                            console.log('📦 Preparing data:', { ssid, qrcode_password: password, hasPassword: !!wifiPassword });
-
-                            // Get the service UUID from device's serviceUUIDs
-                            const serviceUUID = device.serviceUUIDs?.[0];
-                            if (!serviceUUID) {
-                                throw new Error('No service UUID found');
-                            }
-
-                            // Get all services
-                            const services = await device.services();
-                            const service = services.find(s => s.uuid.toLowerCase() === serviceUUID.toLowerCase());
-                            if (!service) {
-                                throw new Error(`Service ${serviceUUID} not found`);
-                            }
-
-                            // Get all characteristics
-                            const characteristics = await service.characteristics();
-                            const characteristic = characteristics[0]; // Use the first characteristic
-                            if (!characteristic) {
-                                throw new Error('No characteristic found');
-                            }
-
-                            console.log('Service UUID:', serviceUUID);
-                            console.log('Characteristic UUID:', characteristic.uuid);
-
-                            await BLEManager.sendData(
-                                device,
-                                serviceUUID,
-                                characteristic.uuid,
-                                data
-                            );
-
-                            Alert.alert('Success', 'Wi-Fi credentials sent successfully.');
-                        } catch (error) {
-                            console.error('❌ Send error:', error);
-                            Alert.alert('Error', `Failed to send Wi-Fi credentials: ${error.message}`);
-                        } finally {
-                            setSending(false);
-                        }
-                    },
-                },
-            ]
-        );
+        WifiManager.storeWifiPassword(ssid, wifiPassword);  // Changed from savePassword to storeWifiPassword
+        sendCredentials(ssid, wifiPassword);
     };
-
 
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Connected to Mirror</Text>
 
+            {currentSSID && (
+                <TouchableOpacity
+                    style={styles.sendButton}
+                    onPress={handleShareCurrentWifi}
+                    disabled={sending}
+                >
+                    <Text style={styles.buttonText}>
+                        {sending ? 'Sending...' : `Share Current WiFi: ${currentSSID}`}
+                    </Text>
+                </TouchableOpacity>
+            )}
+
+            <Text style={styles.subtitle}>Or manually enter WiFi credentials:</Text>
+
             <TextInput
                 style={styles.input}
-                placeholder="Enter Wi-Fi SSID"
+                placeholder="Wi-Fi SSID"
                 value={ssid}
                 onChangeText={setSsid}
             />
             <TextInput
                 style={styles.input}
-                placeholder="Enter Wi-Fi Password"
+                placeholder="Wi-Fi Password"
                 value={wifiPassword}
                 onChangeText={setWifiPassword}
                 secureTextEntry
             />
 
-            <TouchableOpacity style={styles.sendButton} onPress={handleSendWifiCredentials} disabled={sending}>
+            <TouchableOpacity style={styles.sendButton} onPress={handleManualSend} disabled={sending}>
                 <Text style={styles.buttonText}>{sending ? 'Sending...' : 'Send Wi-Fi Info'}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.disconnectButton} onPress={handleDisconnect}>
+            <TouchableOpacity
+                style={styles.disconnectButton}
+                onPress={handleDisconnect}
+            >
                 <Text style={styles.buttonText}>Disconnect</Text>
             </TouchableOpacity>
         </View>
