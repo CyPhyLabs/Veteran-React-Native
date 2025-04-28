@@ -74,10 +74,29 @@ class BLEManager {
 
     async disconnectFromDevice(device) {
         try {
+            if (!device) {
+                console.log('⚠️ No device to disconnect from');
+                return;
+            }
+
+            // Check if device is connected before attempting to disconnect
+            const isConnected = await device.isConnected();
+            if (!isConnected) {
+                console.log('ℹ️ Device already disconnected');
+                return;
+            }
+
             console.log('🔌 Disconnecting from device:', device.id);
             await device.cancelConnection();
+            console.log('✅ Disconnected successfully');
         } catch (error) {
+            // Handle specific BLE errors
+            if (error.name === 'BleError' && error.message.includes('cancelled')) {
+                console.log('ℹ️ Disconnect operation cancelled - device might be already disconnected');
+                return;
+            }
             console.error('❌ Failed to disconnect:', error);
+            throw error;
         }
     }
 
