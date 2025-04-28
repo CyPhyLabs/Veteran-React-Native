@@ -5,8 +5,6 @@ import { BASE_URL, AUTH_ENDPOINTS } from './authTypes';
 import Constants from 'expo-constants';
 import { autoReauthenticateIfNeeded } from './auth.utils'; // <-- Import our helper
 
-
-
 /**
  * Universal API Caller
  * Automatically refreshes access tokens if expired.
@@ -14,7 +12,6 @@ import { autoReauthenticateIfNeeded } from './auth.utils'; // <-- Import our hel
  */
 export const apiCall = async (endpoint, method = 'GET', body = null, customHeaders = {}, navigation = null) => {
     const url = `${BASE_URL}${endpoint}`;
-
     try {
         const access = await autoReauthenticateIfNeeded(navigation);  // <-- Key here!
 
