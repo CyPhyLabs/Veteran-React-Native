@@ -2,9 +2,7 @@ import { Platform } from 'react-native';
 import { API_BASE_URL, ANDROID_API_BASE_URL, IOS_API_BASE_URL, PHYSICAL_DEVICE_URL } from '@env';
 import Constants from 'expo-constants';
 
-
 const getBaseUrl = () => {
-
     return API_BASE_URL;
 };
 
@@ -65,4 +63,17 @@ export const apiCall = async (endpoint, method = 'GET', body = null) => {
 export const ENDPOINTS = {
     LOGIN: '/login/',
     REGISTER: '/register/',
+    MESSAGES: '/messages/',
+};
+
+// Function to fetch messages
+export const fetchMessages = async () => {
+    try {
+        const messages = await apiCall(ENDPOINTS.MESSAGES);
+        console.log('Fetched messages:', messages);
+        return messages;
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        throw error;
+    }
 };
