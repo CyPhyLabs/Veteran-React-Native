@@ -1,9 +1,10 @@
 // services/api.js
 import { Platform } from 'react-native';
-import { BASE_URL, AUTH_ENDPOINTS } from './authTypes';
+import { BASE_URL, getEndpointType, ENDPOINT_TYPES, AUTH_ENDPOINTS } from './authTypes';
 // import { API_BASE_URL, ANDROID_API_BASE_URL, IOS_API_BASE_URL, PHYSICAL_DEVICE_URL } from '@env';
 import Constants from 'expo-constants';
 import { autoReauthenticateIfNeeded } from './auth.utils'; // <-- Import our helper
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
  * Universal API Caller
@@ -12,15 +13,34 @@ import { autoReauthenticateIfNeeded } from './auth.utils'; // <-- Import our hel
  */
 export const apiCall = async (endpoint, method = 'GET', body = null, customHeaders = {}, navigation = null) => {
     const url = `${BASE_URL}${endpoint}`;
-    try {
-        const access = await autoReauthenticateIfNeeded(navigation);  // <-- Key here!
+    const endpointType = getEndpointType(endpoint);
 
-        const headers = {
+    try {
+        let headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': `Bearer ${access}`,
             ...customHeaders,
         };
+
+        switch (endpointType) {
+            case ENDPOINT_TYPES.PUBLIC:
+                // No authentication needed
+                break;
+
+            case ENDPOINT_TYPES.REFRESH:
+                // Only check for refresh token
+                const refreshToken = await AsyncStorage.getItem('refresh_token');
+                if (!refreshToken) {
+                    await autoReauthenticateIfNeeded(navigation);
+                }
+                break;
+
+            case ENDPOINT_TYPES.PROTECTED:
+                // Full authentication check
+                const access = await autoReauthenticateIfNeeded(navigation);
+                headers.Authorization = `Bearer ${access}`;
+                break;
+        }
 
         const options = {
             method,
@@ -72,4 +92,15 @@ export const ENDPOINTS = {
         REFRESH: '/mirror-auth/refresh/'
     },
 
+};
+
+export const fetchMessages = async () => {
+    try {
+        const messages = await apiCall(ENDPOINTS.MESSAGES);
+        console.log('Fetched messages:', messages);
+        return messages;
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        throw error;
+    }
 };

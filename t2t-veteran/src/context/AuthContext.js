@@ -146,13 +146,16 @@ export const AuthProvider = ({ children }) => {
     const logout = async () => {
         console.log('Logging out user...');
         try {
-            // await clearUserData();
-
-            await AsyncStorage.removeItem('userToken');
+            // Remove all auth-related tokens
+            await AsyncStorage.multiRemove([
+                'access_token',
+                'refresh_token',
+                'userToken'
+            ]);
             setIsAuthenticated(false);
         } catch (error) {
             console.error('Error during logout:', error);
-            setIsAuthenticated(false); // Force logout even on error
+            setIsAuthenticated(false);
         }
     };
 

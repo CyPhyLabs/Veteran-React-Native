@@ -82,24 +82,31 @@ const HomeScreen = () => {
   // #endregion
   const StarBackground = useMemo(
     () => (
-        <View style={HomeStyles.starBackground}>
-        {[...Array(20)].map((_, rowIndex) => ( // 10 rows of stars
-            <View key={rowIndex} style={[HomeStyles.starRow, rowIndex % 2 === 1 && HomeStyles.staggeredRow,]}>
-            {[...Array(10)].map((_, colIndex) => ( // 15 stars per row
+      <View style={HomeStyles.starBackground}>
+        {[...Array(20)].map((_, rowIndex) => (
+          <View
+            key={`row-${rowIndex}`}
+            style={[
+              HomeStyles.starRow,
+              rowIndex % 2 === 1 && HomeStyles.staggeredRow
+            ]}
+          >
+            {[...Array(10)].map((_, colIndex) => (
+              <View key={`star-${rowIndex}-${colIndex}`}>
                 <Icon
-                key={colIndex}
-                name="star"
-                size={25}
-                style={HomeStyles.star} // Apply spacing style
-                color={`rgba(255, 255, 255, ${1 - rowIndex * 0.1})`} // Fading opacity
+                  name="star"
+                  size={25}
+                  style={HomeStyles.star}
+                  color={`rgba(255, 255, 255, ${1 - rowIndex * 0.1})`}
                 />
+              </View>
             ))}
-            </View>
+          </View>
         ))}
-        </View>
+      </View>
     ),
-    [],
-    );
+    []
+  );
   // #region Rendered Components
   const HeaderSection = useMemo(
     () => (
@@ -236,42 +243,55 @@ const HomeScreen = () => {
   const SettingsModal = useMemo(
     () => (
       <Modal
-        animationType="slide"
+        animationType="fade" // changed from "slide" to "fade"
         transparent={true}
         visible={isSettingsModalVisible}
         onRequestClose={toggleSettingsModal}
       >
-        <View style={HomeStyles.modalContainer}>
-          <View style={HomeStyles.modalContent}>
-            <Text style={HomeStyles.modalTitle}>Settings</Text>
-            <TouchableOpacity
-              onPress={logout}
-              style={HomeStyles.logoutButton}
-            >
-              <Text style={HomeStyles.logoutButtonText}>Logout</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={toggleSettingsModal}
-              style={HomeStyles.closeButton}
-            >
-              <Text style={HomeStyles.closeButtonText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <TouchableOpacity
+          style={HomeStyles.modalContainer}
+          activeOpacity={1}
+          onPress={toggleSettingsModal}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={e => e.stopPropagation()}
+          >
+            <View style={HomeStyles.modalContent}>
+              <Text style={HomeStyles.modalTitle}>Settings</Text>
+              <TouchableOpacity
+                onPress={logout}
+                style={HomeStyles.logoutButton}
+                activeOpacity={0.8}
+              >
+                <Text style={HomeStyles.logoutButtonText}>Logout</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={toggleSettingsModal}
+                style={HomeStyles.closeButton}
+                activeOpacity={0.8}
+              >
+                <Text style={HomeStyles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     ),
-    [isSettingsModalVisible, toggleSettingsModal, logout],
+    [isSettingsModalVisible, toggleSettingsModal, logout]
   );
   // #endregion
 
   return (
     <SafeAreaView style={HomeStyles.container}>
-        {StarBackground} {/* Ensure this is rendered */}
+      <View style={HomeStyles.contentContainer}>
+        {StarBackground}
         <View style={HomeStyles.gradientOverlay} />
-      {HeaderSection}
-      {NotificationsSection}
-      {UpcomingEventsSection}
-      {SettingsModal}
+        {HeaderSection}
+        {NotificationsSection}
+        {UpcomingEventsSection}
+        {SettingsModal}
+      </View>
     </SafeAreaView>
   );
 };

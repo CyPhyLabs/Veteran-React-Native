@@ -7,7 +7,8 @@ export const refreshAccessToken = async () => {
         const access = await AsyncStorage.getItem('access_token');
 
         if (!refresh) {
-            throw new Error('Refresh token missing');
+            console.log('No refresh token found');
+            return null;
         }
 
         const response = await fetch(`${BASE_URL}${AUTH_ENDPOINTS.REFRESH_TOKEN}`, {
@@ -20,11 +21,16 @@ export const refreshAccessToken = async () => {
             body: JSON.stringify({ refresh }),
         });
 
+        if (!response.ok) {
+            console.log('Token refresh failed');
+            return null;
+        }
+
         const data = await response.json();
         await AsyncStorage.setItem('access_token', data.access);
         return data.access;
     } catch (error) {
-        console.error('Error refreshing access token:', error);
-        throw error;
+        console.error('Error during token refresh:', error);
+        return null;
     }
 };

@@ -24,64 +24,70 @@ const TabNavigator = () => (
     <Tab.Screen
       name="Notifications"
       component={NotificationsScreen}
-      options={{headerShown: false, tabBarIcon: ({ color, size }) => (<Icon name="notifications-outline" color={color} size={size} />),
+      options={{
+        headerShown: false, tabBarIcon: ({ color, size }) => (<Icon name="notifications-outline" color={color} size={size} />),
       }}
     />
     <Tab.Screen
       name="Events"
       component={CalendarScreen}
-      options={{headerShown: false, tabBarIcon: ({ color, size }) => (<Icon name="calendar-outline" color={color} size={size} /> ),
+      options={{
+        headerShown: false, tabBarIcon: ({ color, size }) => (<Icon name="calendar-outline" color={color} size={size} />),
       }}
     />
-     <Tab.Screen
-      name="Home"
+    <Tab.Screen
+      name="HomeTab"
       component={HomeScreen}
-      options={{headerShown: false, tabBarIcon: ({ color, size }) => (<Icon name="home-outline" color={color} size={size} />),
+      options={{
+        title: 'Home',
+        headerShown: false, tabBarIcon: ({ color, size }) => (<Icon name="home-outline" color={color} size={size} />),
       }}
     />
     <Tab.Screen
       name="Reminders"
       component={RemindersScreen}
-      options={{headerShown: false, tabBarIcon: ({ color, size }) => (<Icon name="alarm-outline" color={color} size={size} /> ),
+      options={{
+        headerShown: false, tabBarIcon: ({ color, size }) => (<Icon name="alarm-outline" color={color} size={size} />),
       }}
     />
     <Tab.Screen
       name="Mirror"
       component={CameraScreen}
-      options={{headerShown: false, tabBarIcon: ({ color, size }) => (<MaterialCommunityIcons name="mirror-rectangle" size={size} color={color} /> ),
+      options={{
+        headerShown: false, tabBarIcon: ({ color, size }) => (<MaterialCommunityIcons name="mirror-rectangle" size={size} color={color} />),
       }}
     />
   </Tab.Navigator>
 );
 
 const AppNavigator = () => {
-    const { isAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated } = useContext(AuthContext);
 
-     return (
-        <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-                {isAuthenticated ? (
-                    <>
-                        <Stack.Screen name="Home" component={TabNavigator} />
-                        <Stack.Screen
-                            name="MirrorConnectionScreen"
-                            component={MirrorConnectionScreen}
-                            options={{
-                                headerShown: true,
-                                title: 'Mirror Connection'
-                            }}
-                        />
-                    </>
-                ) : (
-                    <>
-                        <Stack.Screen name="Login" component={LoginScreen} />
-                        <Stack.Screen name="Register" component={RegisterScreen} />
-                        <Stack.Screen name="MirrorConnectionScreen" component={MirrorConnectionScreen} />
-                    </>
-                )}
-            </Stack.Navigator>
-        </NavigationContainer>
-    );
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {isAuthenticated ? (
+          <>
+            <Stack.Screen name="Home" component={TabNavigator} />
+            <Stack.Screen
+              name="MirrorConnectionScreen"
+              component={MirrorConnectionScreen}
+              options={{
+                headerShown: true,
+                title: 'Mirror Connection'
+              }}
+            />
+          </>
+        ) : (
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="MirrorConnectionScreen" component={MirrorConnectionScreen} />
+          </>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 };
 
 export default AppNavigator;

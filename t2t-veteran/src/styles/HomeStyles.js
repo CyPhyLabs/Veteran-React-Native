@@ -8,13 +8,19 @@ export const HomeStyles = StyleSheet.create({
   },
   starBackground: {
     position: 'absolute',
-    top: 0,
+    top: -100,
     left: 0,
     right: 0,
     bottom: 0,
     flexDirection: 'column',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: 30,
+
+  },
+  contentContainer: {
+    flex: 1,
+    width: '100%',
   },
   starRow: {
     flexDirection: 'row',
@@ -22,14 +28,14 @@ export const HomeStyles = StyleSheet.create({
     width: '100%',
   },
   staggeredRow: {
-  paddingLeft: 20, // Add padding to stagger the row
-},
+    paddingLeft: 20, // Add padding to stagger the row
+  },
   star: {
-  marginHorizontal: 5, // Add horizontal spacing between stars
-  transform: [{ rotate: '45deg'}],
-  width: 25,
-  height: 25,
-},
+    marginHorizontal: 5, // Add horizontal spacing between stars
+    transform: [{ rotate: '45deg' }],
+    width: 25,
+    height: 25,
+  },
   gradientOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(255, 255, 255, 0.5)', // Adjust opacity for gradient effect
@@ -82,7 +88,7 @@ export const HomeStyles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 5,
     width: '100%',
-    marginBottom: 15, 
+    marginBottom: 15,
   },
   tab: {
     flex: 1,
@@ -110,23 +116,60 @@ export const HomeStyles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 10,
-    width: '80%',
+    backgroundColor: '#FFFFFF',
+    padding: 24,
+    borderRadius: 20,
+    width: '85%',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontSize: 24,
+    fontWeight: '600',
     color: '#29384B',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  logoutButton: {
+    backgroundColor: '#885053',
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    width: '100%',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  logoutButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  closeButton: {
+    backgroundColor: '#637D92',
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  closeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   addButton: {
     position: 'absolute',
@@ -197,7 +240,7 @@ export const HomeStyles = StyleSheet.create({
     marginLeft: 5,
   },
   sendButton: {
-    backgroundColor :'#885053',
+    backgroundColor: '#885053',
   },
   sendButtonText: {
     color: '#fff',
@@ -217,18 +260,18 @@ export const HomeStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  
+
   notificationContent: {
     flex: 1,
   },
-  
+
   notificationTitle: {
     fontSize: 14,
     fontWeight: '600',
     color: '#272635',
     marginBottom: 2,
   },
-  
+
   notificationBody: {
     fontSize: 12,
     color: '#555',
