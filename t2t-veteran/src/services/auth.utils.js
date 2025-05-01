@@ -8,33 +8,35 @@ export const autoReauthenticateIfNeeded = async (navigation = null) => {
         let access = await AsyncStorage.getItem('access_token');
 
         if (!access) {
-            console.log('Access token missing, attempting refresh...');
             access = await refreshAccessToken();
+            if (!access && navigation) {
+                navigation.reset({
+                    index: 0,
+                    routes: [{
+                        name: 'Login',
+                        params: {
+                            message: 'Please sign in to continue'
+                        }
+                    }],
+                });
+                return null;
+            }
         }
 
         return access;
     } catch (error) {
-        console.error('Reauthentication failed:', error.message);
-
-        Alert.alert(
-            'Session Expired',
-            'Please log in again to continue.',
-            [
-                {
-                    text: 'OK',
-                    onPress: () => {
-                        if (navigation) {
-                            navigation.reset({
-                                index: 0,
-                                routes: [{ name: 'Login' }],
-                            });
-                        }
+        console.error('Auth check failed:', error);
+        if (navigation) {
+            navigation.reset({
+                index: 0,
+                routes: [{
+                    name: 'Login',
+                    params: {
+                        message: 'Your session has expired. Please sign in again.'
                     }
-                }
-            ],
-            { cancelable: false }
-        );
-
-        throw new Error('Session expired. Redirecting to login.');
+                }],
+            });
+        }
+        return null;
     }
 };
